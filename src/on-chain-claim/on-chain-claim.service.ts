@@ -2,6 +2,7 @@ import {
   AbiRegistry,
   Address,
   AddressValue,
+  ResultsParser,
   SmartContract,
   TokenIdentifierValue,
   Transaction,
@@ -13,6 +14,9 @@ import { CommonService } from 'src/common.service';
 import { sc_address } from 'src/utils';
 import { UpdateStateDto } from './update-state.dto';
 import { RepairStreakPaymentDto } from './repair-streak-payment.dto';
+import { AddressInfoDto } from './address-info.dto';
+import { ProxyNetworkProvider } from '@multiversx/sdk-network-providers/out';
+import { EsdtTokenPaymentDto } from './esdt-token-payment.dto';
 
 @Injectable()
 export class OnChainClaimService {
@@ -79,5 +83,51 @@ export class OnChainClaimService {
     const transaction = interactor.buildTransaction();
 
     return transaction;
+  }
+
+  async getAddressInfo(address: string): Promise<AddressInfoDto> {
+    const provider = await this.commonService.getNetworkProvider();
+    const contract = await this.getSmartContract(sc_address);
+    const interactor = contract.methodsExplicit.getAddressInfo([
+      new AddressValue(Address.fromBech32(address)),
+    ]);
+    const queryResult = await provider.queryContract(interactor.buildQuery());
+    const endpointDefinition = interactor.getEndpoint();
+    const result = new ResultsParser().parseQueryResponse(
+      queryResult,
+      endpointDefinition,
+    );
+
+    return result.firstValue.valueOf();
+  }
+
+  async getCanBeRepaired(address: string): Promise<boolean> {
+    const provider = await this.commonService.getNetworkProvider();
+    const contract = await this.getSmartContract(sc_address);
+    const interactor = contract.methodsExplicit.canBeRepaired([
+      new AddressValue(Address.fromBech32(address)),
+    ]);
+    const queryResult = await provider.queryContract(interactor.buildQuery());
+    const endpointDefinition = interactor.getEndpoint();
+    const result = new ResultsParser().parseQueryResponse(
+      queryResult,
+      endpointDefinition,
+    );
+
+    return result.firstValue.valueOf();
+  }
+
+  async getRepairStreakPayment(): Promise<EsdtTokenPaymentDto> {
+    const provider = await this.commonService.getNetworkProvider();
+    const contract = await this.getSmartContract(sc_address);
+    const interactor = contract.methodsExplicit.getRepairStreakPayment();
+    const queryResult = await provider.queryContract(interactor.buildQuery());
+    const endpointDefinition = interactor.getEndpoint();
+    const result = new ResultsParser().parseQueryResponse(
+      queryResult,
+      endpointDefinition,
+    );
+
+    return result.firstValue.valueOf();
   }
 }

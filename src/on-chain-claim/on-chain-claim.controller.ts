@@ -1,7 +1,9 @@
-import { Body, Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Param } from '@nestjs/common';
 import { OnChainClaimService } from './on-chain-claim.service';
 import { UpdateStateDto } from './update-state.dto';
 import { RepairStreakPaymentDto } from './repair-streak-payment.dto';
+import { AddressInfoDto } from './address-info.dto';
+import { EsdtTokenPaymentDto } from './esdt-token-payment.dto';
 
 @Controller('on-chain-claim')
 export class OnChainClaimController {
@@ -36,5 +38,25 @@ export class OnChainClaimController {
         repairStreakPaymentDto,
       );
     return transaction.toPlainObject();
+  }
+
+  @Get('/get-address-info/:address')
+  async getAddressInfo(
+    @Param('address') address: string,
+  ): Promise<AddressInfoDto> {
+    const value = await this.onChainClaimService.getAddressInfo(address);
+    return value;
+  }
+
+  @Get('/can-be-repaired/:address')
+  async getCanBeRepaired(@Param('address') address: string): Promise<boolean> {
+    const value = await this.onChainClaimService.getCanBeRepaired(address);
+    return value;
+  }
+
+  @Get('/repair-streak-payment')
+  async getRepairStreakPayment(): Promise<EsdtTokenPaymentDto> {
+    const value = await this.onChainClaimService.getRepairStreakPayment();
+    return value;
   }
 }
