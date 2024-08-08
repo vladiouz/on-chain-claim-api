@@ -1,5 +1,5 @@
 export class EsdtTokenPaymentDto {
-  esdtTokenId: string;
-  nonce: number;
+  token_identifier: string;
+  token_nonce: number;
   amount: number;
 }

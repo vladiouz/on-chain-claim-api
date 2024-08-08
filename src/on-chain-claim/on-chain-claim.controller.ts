@@ -15,10 +15,10 @@ export class OnChainClaimController {
     return transaction.toPlainObject();
   }
 
-  @Get('/transaction/claim-and-repair')
-  async getClaimAndRepairTransaction() {
+  @Get('/transaction/claim-and-repair/:address')
+  async getClaimAndRepairTransaction(@Param('address') address: string) {
     const transaction =
-      await this.onChainClaimService.getClaimAndRepairTransaction();
+      await this.onChainClaimService.getClaimAndRepairTransaction(address);
     return transaction.toPlainObject();
   }
 

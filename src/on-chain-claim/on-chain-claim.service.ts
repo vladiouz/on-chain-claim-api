@@ -4,7 +4,9 @@ import {
   AddressValue,
   ResultsParser,
   SmartContract,
+  Token,
   TokenIdentifierValue,
+  TokenTransfer,
   Transaction,
   U64Value,
 } from '@multiversx/sdk-core/out';
@@ -40,15 +42,30 @@ export class OnChainClaimService {
 
   async getClaimTransaction(): Promise<Transaction> {
     const contract = await this.getSmartContract(sc_address);
-    const interactor = contract.methodsExplicit.claim();
+    const interactor = contract.methodsExplicit.claim().withChainID('D');
     const transaction = interactor.buildTransaction();
 
     return transaction;
   }
 
-  async getClaimAndRepairTransaction(): Promise<Transaction> {
+  async getClaimAndRepairTransaction(address: string): Promise<Transaction> {
     const contract = await this.getSmartContract(sc_address);
-    const interactor = contract.methodsExplicit.claimAndRepair();
+    const esdtTransfer = await this.getRepairStreakPayment();
+    console.log(esdtTransfer);
+    console.log(esdtTransfer.token_identifier);
+    const interactor = contract.methodsExplicit
+      .claimAndRepair()
+      .withChainID('D')
+      .withSender(Address.fromBech32(address))
+      .withSingleESDTTransfer(
+        new TokenTransfer({
+          token: new Token({
+            identifier: esdtTransfer.token_identifier,
+            nonce: BigInt(esdtTransfer.token_nonce),
+          }),
+          amount: BigInt(esdtTransfer.amount),
+        }),
+      );
     const transaction = interactor.buildTransaction();
 
     return transaction;
@@ -65,7 +82,9 @@ export class OnChainClaimService {
       new U64Value(updateStateDto.total_epochs_claimed),
       new U64Value(updateStateDto.best_streak),
     ];
-    const interactor = contract.methodsExplicit.updateState(args);
+    const interactor = contract.methodsExplicit
+      .updateState(args)
+      .withChainID('D');
     const transaction = interactor.buildTransaction();
 
     return transaction;
@@ -79,7 +98,9 @@ export class OnChainClaimService {
       new TokenIdentifierValue(repairStreakPaymentDto.tokenId),
       new U64Value(repairStreakPaymentDto.amount),
     ];
-    const interactor = contract.methodsExplicit.setRepairStreakPayment(args);
+    const interactor = contract.methodsExplicit
+      .setRepairStreakPayment(args)
+      .withChainID('D');
     const transaction = interactor.buildTransaction();
 
     return transaction;
