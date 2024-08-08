@@ -4,10 +4,14 @@ import { UpdateStateDto } from './update-state.dto';
 import { RepairStreakPaymentDto } from './repair-streak-payment.dto';
 import { AddressInfoDto } from './address-info.dto';
 import { EsdtTokenPaymentDto } from './esdt-token-payment.dto';
+import { RedisCacheService } from '@multiversx/sdk-nestjs-cache';
 
 @Controller('on-chain-claim')
 export class OnChainClaimController {
-  constructor(private readonly onChainClaimService: OnChainClaimService) {}
+  constructor(
+    private readonly onChainClaimService: OnChainClaimService,
+    private readonly redisService: RedisCacheService,
+  ) {}
 
   @Get('/transaction/claim')
   async getClaimTransaction() {
@@ -40,6 +44,7 @@ export class OnChainClaimController {
     return transaction.toPlainObject();
   }
 
+  /* --------- VIEWS --------- */
   @Get('/get-address-info/:address')
   async getAddressInfo(
     @Param('address') address: string,
